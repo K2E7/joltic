@@ -382,10 +382,27 @@ def main(argv: Sequence[str] | None = None) -> int:
         run_config_wizard()
         return 0
 
-    config_path = Path(args.config) if args.config else None
+    if args.config:
+        source = Path(args.config).expanduser()
+        try:
+            imported_config = load_config(source)
+        except (OSError, ValueError) as exc:
+            logging.error("Unable to load configuration from %s: %s", source, exc)
+            return 2
+
+        try:
+            target = save_config(imported_config)
+        except (OSError, ValueError, RuntimeError) as exc:
+            logging.error("Unable to persist configuration: %s", exc)
+            return 2
+
+        message = f"Configuration imported from {source} and stored at {target}"
+        print(message)
+        logging.info(message)
+        return 0
 
     try:
-        config = load_config(config_path)
+        config = load_config()
     except (OSError, ValueError) as exc:
         logging.error("Unable to load configuration: %s", exc)
         return 2

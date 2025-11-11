@@ -19,11 +19,14 @@ joltic
 joltic SIT
 joltic UAT batches
 joltic --config         # launches the interactive config wizard
+joltic --config my.json # imports my.json and makes it the active config
 ```
 
 Configuration lives in `~/.joltic/config.json` (falls back to `./.joltic/`
 whenever the home directory is not writable). You can also supply an explicit
-file with `joltic --config my_config.json`.
+file with `joltic --config my_config.json` to validate it, store it in the
+default location, and exit without opening an SSH session. The CLI prints a
+confirmation so you know the settings were loaded.
 
 ### Configuration format
 
@@ -57,7 +60,7 @@ You do not need to craft the file by hand — run `joltic --config` with no valu
 ### CLI flags
 
 - `environment` / `category` positional arguments narrow the interactive prompts. You can type either a canonical name or any alias.
-- `--config PATH` loads a specific configuration file. Supplying the flag without a value opens the configuration wizard and saves the result to the default location.
+- `--config PATH` imports and validates a configuration file, writes it to the default location, prints a confirmation, and exits without attempting an SSH connection. Supplying the flag without a value opens the configuration wizard and saves the result to the default location.
 - `--ssh-arg VALUE` forwards extra options to `ssh`. Repeat the flag for multiple options (for instance `--ssh-arg -i --ssh-arg ~/.ssh/work.pem`).
 - `--dry-run` prints the fully expanded ssh command so you can verify it before execution, which is handy for shell history or troubleshooting.
 
