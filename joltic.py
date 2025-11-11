@@ -10,6 +10,7 @@ import os
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any, Dict, List, Mapping, MutableMapping, Sequence
 
@@ -53,15 +54,27 @@ def get_app_dir() -> Path:
         return path
 
     default = Path.home() / ".joltic"
-    try:
-        default.mkdir(parents=True, exist_ok=True)
-        if os.access(default, os.W_OK):
-            return default
-        raise PermissionError
-    except (OSError, PermissionError):
-        fallback = Path.cwd() / ".joltic"
-        fallback.mkdir(parents=True, exist_ok=True)
+    if ensure_writable_dir(default):
+        return default
+
+    fallback = Path.cwd() / ".joltic"
+    if ensure_writable_dir(fallback):
         return fallback
+
+    raise RuntimeError("Unable to determine a writable configuration directory")
+
+
+def ensure_writable_dir(path: Path) -> bool:
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return False
+
+    try:
+        with tempfile.NamedTemporaryFile(dir=str(path)):
+            return True
+    except OSError:
+        return False
 
 
 def configure_logging(level: int = logging.INFO, stream: bool = True) -> Path:
